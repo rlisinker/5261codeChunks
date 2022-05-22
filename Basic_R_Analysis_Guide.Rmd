@@ -14,12 +14,12 @@ We highly recommend actually working through the **Rmd** version of this documen
 Before running the code in this document, please:
 
   1. Read through "Getting Started with R and R Studio".  This will make using this code a LOT easier.
-  2. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`. (Instructions are in the "Getting Started with R and R Studio" document.)
+   2. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`. (Instructions are in the "Getting Started with R and R Studio" document.)
   3. Download **statescountries.csv** and **ExampleData.csv** from the Canvas site (Files page) and put them in the same folder on your computer as this file, this puts all files (the code and the data) in the same *directory*.
   
 ## Loading packages
 
-Every time you open R, you need to *load* the add-on packages that you'll be using.  We'll always be using `mosaic` and `readr` in this class.  (You should have already installed these packages using the instructions in the "Getting Started" guide.)
+Every time you open R, you need to load the add-on packages that you'll be using.  We'll always be using `mosaic` and `readr` in this class.  (You should have already installed these packages using the instructions in the "Getting Started" guide.)
 
 You *load* a package by using the `library()` function (you can also use `require()`, which is used in the **Lock5 with R** guide. You can copy and paste this chunk into the beginning of all your notebooks to load these packages:
 
@@ -87,7 +87,7 @@ example <- read_csv("Example-Data.csv")
 
 The first command takes the file **StatesCountries.csv** and assigns it to a new R object called `travels`.  The second and command operates similarly.  The function `read_csv()` also gives some output information about how it read in each of the values. 
 
-You'll notice both of these objects now show up in the **Environment** pane on the upper-right panel of RStudio, and you can click on each dataset to view the values within the data and you can click on the blue play button to the left of the names to view the variable names (listed after a $). 
+You'll notice both of these objects now show up in the **Environment** pane on the upper-right panel of RStudio, and you can click on each dataset to view the values within the data and you can click on the blue play button to the left of the names to view the variable names (listed after a $).
 
 You can also view the data from within the notebook, just by typing its name in a code chunk.
 
@@ -118,13 +118,12 @@ For this class, you can use R code that obeys the following template:
   - `*goal*`: what are you trying to do?  For instance, you may want to calculate a `mean`.  
   - `*y*` and `*x*` what is your *outcome* variable and your *predictor*?  For instance, if you're trying to predict student test scores with how many hours the students studied, test scores would be your `*y*`/outcome variable and hours studied would be your `*x*`/predictor variable.  If you only have one variable, than you would have no `*y*` variable and instead would just type `~ *x*` or just `*x*`.
   - `*dataset*`: what R object contains the data you're trying to analyze?
-  
+
 **Note:**   
 At the start of your statistical journey, you may only want to focus on one variable at a time, you can still use this template. For example, you might be asked to find the average number of countries:
 ```{r}
 mean(~countries, data = travels)
 ```
-
 
 This is called *formula syntax*.  Not all R functions work this way, but we've tried to focus on R functions that are consistent with this template to make R easier to learn.  See p. 16 of **Lock5 with R** for more information about this template for writing R code.
 
@@ -324,7 +323,7 @@ You can find out more about the data (or about any R data or function) by typing
 ?Whickham
 ```
 
-We'll compare `outcome` and `smoker`.  We can create a two-way table of counts using the `tally()` function, and save that table as a new object. 
+We'll compare `outcome` and `smoker`.  We can create a two-way table of counts using the `tally()` function, and save that table as a new object.  
 
 Remember that we save this table as a new object by assigning a name for the table and using `<-` or `=`
 
@@ -341,7 +340,7 @@ two_way_totals <- tally(~ outcome + smoker, data = Whickham, margins = TRUE)
 two_way_totals
 ```
 
-It can be useful to see the percentages across smokers -- this will tell us what percentage of non-smokers are dead or alive, and what percentage of smokers are dead or alive.  Above, we used the formula `~ smoker + outcome` because we weren't treating either `smoker` or `outcome` as the outcome variable.  Now, we use the formula `outcome ~ smoker` to clarify that `outcome` is our outcome variable, and add `format = "percent"` to show the percentage.
+It can be useful to see the percentages across smokers -- this will tell us what percentage of non-smokers are dead or alive, and what percentage of smokers are dead or alive.  Above, we used the formula `~ smoker + outcome` because we weren't treating either `smoker` or `outcome` as the outcome variable.  Now, we use the formula `outcome ~ smoker` to clarify that `outcome` is our outcome variable, and add `format = "percent"` to show the percentage.   
 
 Because we have specified which variable is which, these percentages will tell us the percent of each outcome (alive or dead) grouped by our predictor variable (whether the person smoked or not). What percent of smokers are alive? In the table above, 443 smokers were listed with the `alive` outcome out of 582 total smokers. 443/582 is represented below as 76.116% in the same top right spot. 
 
