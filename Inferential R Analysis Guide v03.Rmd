@@ -1,0 +1,408 @@
+---
+title: "Inferential R Analysis Guide"
+output:
+  word_document: default
+  html_notebook: null
+  html_document:
+    df_print: paged
+---
+
+
+This document provides an introduction to the commands you'll need to do statistical inference (i.e. doing statistical tests and generating confidence intervals) for EPSY 5261 in R.
+
+This document assumes that you have already read through "Getting Started with R and R Studio", and worked through the "Basic R Analysis Guide.Rmd".  Note that this document requires loading a new package: `tidyr` for rearranging data. You don't need to install anything new, however, because this package is already installed on your system when you installed the package `mosaic`.
+
+## Preparing to run this document
+
+Before running the code in this document, please:
+
+  1. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`.
+  2. Download **GenderPolitics.csv**, **GPA-SAT.csv**, **StudyHours.csv**, **TestScores2.csv**, and  **VocabKnowledge.csv** and put them in the *same directory* on your computer as this file.
+  
+## Loading packages
+
+Again, we load the same core packages that we used in the Basic R Analysis Guide.
+
+```{r, message = F}
+
+library(mosaic) # easier analysis functions
+library(readr) # easier data import/export
+library(tidyr) # Rearranging data
+```
+
+## Quantitative Variables
+
+### Creating a confidence interval for a single quantitative variable.
+Suppose you collected data on the number of hours students indicate they have studied for an exam, and stored it in the CSV file **StudyHours.csv**.
+
+The following example will import thedata from a .csv file into a data frame object called `study`. Then, a 95% confidence interval will be computed for the `Hours` variable.
+
+```{r}
+study <- read_csv("StudyHours.csv")
+
+study
+
+```
+Now, we can use the function `t_test()`, which allows us to calculate the *t*-test and the confidence interval.  You can use the function like this:
+
+``t_test( ~ *variable*, mu = *null value*, data = *name of data*, conf.level = *level of confidence as decimal*)``
+
+So if we wanted to show a 90% confidence interval, where the null hypothesis is that $\mu = 0$, we would do:
+```{r}
+t_test(~ Hours, mu = 0, data = study, conf.level = 0.90)
+```
+
+The `t_test()` function provides a lot of useful information regarding the `Hours` variable. The function gives us the *t*-test information (*t*-statistic, df, *p*-value, hypothesized value), confidence interval for the specified confidence level, and sample mean statistic.
+
+Also, note that if the *p*-value is very small, R uses scientific notation. In the above example, R gives the *p*-value as `9.363e-07`, which means $9.363 \times 10^{-7}$, or .0000009363.  By default, R assumes `mu` is 0 and `conf.level` is 0.95, but we recommend always specifying what your null hypothesis and confidence level are for this class.
+
+### Conducting a one-sample *t*-test
+
+Suppose there is a claim that students tend to study 12 hours for particular exam in question. You want to test this claim with your sample of data. Since you have just a single sample and you are using this sample to test a claim about a population parameter (the population mean), you will conduct a one-sample t-test, with the following hypotheses:
+
+$$
+\begin{eqnarray}
+ H_0: & \mu = 12 \\
+H_a: & \mu \neq 12
+\end{eqnarray}
+$$
+
+You will once again use the `t_test()` function, this time changing `mu` to 12 and with a 95% confidence interval:
+
+```{r}
+t_test(~ Hours, mu = 12, data = study, conf.level = 0.95)
+```
+The above can be modified if we want to test different alternative hypotheses, other than the two-sided. If we want to test the “less than” hypothesis, 
+
+$$
+\begin{eqnarray}
+ H_0: &\mu = 12 \\
+H_a: &\mu < 12
+\end{eqnarray}
+$$
+We can specify the argument `alternative` to be `"less"` (by default R assumes it is `"two.sided"`):
+
+```{r}
+t_test(~ Hours, mu = 12, data = study, conf.level = 0.95, alternative = "less")
+```
+
+If we want to test the “greater than” hypothesis, 
+
+$$
+\begin{eqnarray}
+ H_0: & \mu = 12 \\
+H_a: & \mu > 12
+\end{eqnarray}
+$$
+We can specify the argument `alternative` to be `"greater"`:
+
+```{r}
+t_test(~ Hours, mu = 12, data = study, conf.level = 0.95, alternative = "greater")
+```
+
+### Conducting a Paired t-Test
+
+Ten children have taken a pre-test of their vocabulary knowledge and a post-test of their vocabulary knowledge. You would like to conduct a paired *t*-test to determine if there has been a significant change in knowledge from pre-test to post-test. Since each child was measured twice, the paired *t*-test is the appropriate technique to use here. We can conduct a *t*-test, and we can also construct a confidence interval from the mean difference. 
+
+$$
+\begin{eqnarray}
+ H_0: & \mu_d = 0 \\
+H_a: & \mu_d \neq 0
+\end{eqnarray}
+$$
+Here we read in the data to an R data frame called `vocab`.
+```{r}
+vocab <- read_csv("VocabKnowledge.csv")
+vocab
+```
+Note that the pre scores and the post scores are in separate columns here. `t_test` expects just one column to contain all the quantitative values, so we want to rearrange this data.  We can use the function `gather`, from the `tidyr` package to "gather" all the quantitative values into one column.  This function takes the *data* of `vocab`, creates a "key" column which we'll call `"timing"` to denote whether this is the pre or post score, and then will gather all the scores as "value"s in the column we'll call `score`.  The last arguments are simply the names of the columns we want to gather.
+
+```{r}
+vocab_gather <- gather(data = vocab, key = timing, value = score, pre, post)
+vocab_gather
+```
+
+Note that we now have two rows for each student -- first we have the pre-scores for each student, then we have the post-scores.  Now, just like we did with plotting in the "Basic R Analysis Guide", we can use formulas in `t_test()` to specify our variables.  `score` is our response variable, and `timing` is our explanatory variable, so we use the formula `score ~ timing`.  We also specify `paired = TRUE` to tell R that this is paired data (i.e. with two observations per person) and thus that it should subtract each post score from its corresponding pre score (i.e., subtract student 1's pre score from their post score): 
+
+```{r}
+t_test(score ~ timing, data = vocab_gather, paired = TRUE, mu = 0, conf.level = 0.95)
+```
+
+As seen previously with the `t_test()` function, the arguments of the function may be modified to perform the appropriate analysis (e.g., confidence level, direction of the alternative). See the example below that changes the direction of the alternative to greater than 0 and changes the confidence level to 99%.
+
+$$
+\begin{eqnarray}
+ H_0: & \mu_d = 0 \\
+H_a: &\mu_d > 0
+\end{eqnarray}
+$$
+
+```{r}
+t_test(score ~ timing, data = vocab_gather, paired = TRUE, mu = 0, conf.level = 0.99, alternative = "greater")
+```
+
+Note that if you have paired data, you can plot the differences directly in a histogram or dotplot by just typing the formula for subtracting the two directly in the formula for the plot, then graph those differences in order to determine if you are violating the necessary data condition of normality in the population.  For instance, here's a dot plot of the differences (see "Basic R Analysis Guide" for more help on plotting):
+
+```{r}
+dotPlot(~ post - pre, data = vocab, main = "Difference in Vocabulary Test", xlab = "Post - Pre")
+```
+
+You may also want to determine what the differences are with our data object `vocab`. You will need to specify the columns from the vocab object that you would like to perform arithmetic on (in order to compute the differences for each pair of observations). You can do this by creating a new data frame, which we'll call `vocab_diff`, using the `mutate` function to create a new variable.  The first argument is just the input data, and then we can just type a formula to calculate the new column, which we'll call `diff`:
+
+```{r}
+vocab_diff <- mutate(vocab, diff = post - pre)
+vocab_diff
+```
+Plotting the `diff` column would look the same as the plot above where we calculated the difference right in the formula for the plot.
+
+## Conducting a two-sample *t*-test
+
+Suppose you have obtained a random sample of male students and a random sample of female students and you would like to compare these two groups on scores on a particular test. In this case, we have two independent samples---there is no reason for us to believe each male in one sample would be paired or matched with one particular female in the other sample. A two-sample *t*-test is therefore in order.
+
+Before we do a *t*-test, it is a good idea to graph the data, separately by group. To see how to do this, refer to the section: "Comparing 2 groups on a quantitative variable" in the "Basic R Analysis Guide".
+
+Just like you saw above in the paired *t*-test, the `t_test` function expects only one column for the quantitative variable.  Again, here you structure your data by putting all of the scores for both groups in one column, and then you have a second column that identifies the gender for that particular score. This is particularly important for two-sample *t*-tests because you may not always have the same number of observations in each group!
+
+Note that below, we are using `"M"` and `"F"` to stand for males and females, respectively.  You could also use numerical codes if you wanted (i.e., you could type in a 1 to stand for Males and a 2 for Females). 
+
+```{r}
+test2 <- read_csv("TestScores2.csv")
+test2
+```
+If your data is entered as shown above, the appropriate syntax for conducting the two-sample *t*-test is just the same as the paired case, with our response variable, `scores`, appearing on the left side of the formula and our explanatory variable, `gender`, appearing on the right.  The only difference is we type `paired = FALSE`, since we only have one observation per student.
+
+```{r}
+t_test(scores ~ gender, data = test2, paired = FALSE, mu = 0, conf.level = 0.95)
+```
+
+As in the previous 3 sections, the arguments in the `t_test()` function may be changed to fit our analysis (e.g., confidence level, direction of alternative).
+
+Also, by default the two-sample t-test in R assumes unequal variances. 
+The assumption of equal population variances between the two groups is usually not valid, but it is the default in some other statistical software packages. If you wish to assume equal variances in order to compare your results to other statistical software packages, use the syntax below that modifies the `var.equal=` argument in the `t_test()` function.
+
+```{r}
+t_test(scores ~ gender, data = test2, paired = FALSE, mu = 0, conf.level = 0.95, var.equal = TRUE)
+```
+
+## Categorical Variables
+### Chi-square test of independence
+
+To determine how two categorical variables relate (like gender and political party affiliation), we can use the chi-square test of independence. Here, we have a sample of males and females, and each male (M) and female (F) is categorized as being either Republican (R) or Democrat (D). Is there a significant relationship between gender and politics?  To begin, we will first read in a `.csv` file and we’ll name our object `gp` (for Gender Politics).  As you see below, once we read in the file and then type our object name, we can see the data.  We have two columns in our data set corresponding to gender and politics.  
+
+```{r}
+gp <- read_csv("GenderPolitics.csv")
+gp
+```
+
+Recall that we can create a contingency table using the `tally()` command (see the section "Describing two categorical variables" in the "Basic R Analysis Guide").
+
+```{r}
+gp_tally <- tally(~ gender + politics, data = gp)
+gp_tally
+```
+
+To calculate the chi-square test and associated statistics, we use the function `xchisq.test()`, using the same formula that we would use to create the table.  We type in `correct = FALSE` because without this, R automatically conducts a more conservative chi-square analysis by applying something called the Yates’ Continuity Correction.  This is beyond the scope of this class, but we will not be using this continuity correction here. 
+
+```{r}
+xchisq.test(~ gender + politics, data = gp, correct = FALSE)
+```
+
+The output includes the observed counts (which match the table shown above), then the expected cell counts in parentheses below it.  In this course, we will not be directly using the other two values given for each cell.
+
+What if, instead of having that data file, you were given a contingency table like the one below? Here, again, we have the same sample of males and females, and each male and female is categorized as being either Republican (r) or Democrat (d).  Is there a significant relationship between gender and political party affiliation?
+
+|            |	Males |	Females |	Totals|
+|------------|---------|-------|---|
+| Democrat|	3 |	4 |	7|
+|Republican|	4|	4|	8|
+|Totals|	7|	8|	15|
+
+We can enter the above information rather easily right into R in order to perform a chi-square analysis.  
+We begin by defining our variables (gender and party).  Note we want to enter the information in a particular way here to keep track: we'll first enter the two values for Democrats and then the two values for Republicans, reading left to right across rows.  `ncol` tells R how many columns there are in the table, `nrow` tells R how many rows, and `byrow = TRUE` tells R that we are entering the data going across each row from top to bottom (which many students find more intuitive).
+
+```{r}
+gp_data <- matrix(c(3, 4, 4, 4), ncol = 2, nrow = 2, byrow = TRUE)
+
+gp_data
+```
+
+Now, we want to add a little bit of information to make this more clear.  The columns of `gp_data` are males and females, while the rows are Democrats and Republicans; we use the R functions `rownames` and `colnames` to assign these values:
+
+```{r}
+rownames(gp_data) <- c("D", "R")
+colnames(gp_data) <- c("M", "F")
+
+gp_data
+```
+We can also use the `xchisq.test()` function on this table that we just created, which you'll see generates the same output:
+
+```{r}
+xchisq.test(gp_data, correct = FALSE)
+```
+In terms of the warning message, you can see that we get a message that the chi-square approximation may be incorrect.  This is very likely because of the small expected values, which we can see in the parenthesized text above.
+
+## Inference for proportions
+
+### Creating a Confidence Interval for a Single Proportion
+
+Suppose you collected data on the proportion of Major League Baseball (MLB) games where the home team won: the home team won 1334 out of 2430 games in 2009.
+
+To create a confidence interval for a proportion, you need to have the *count* of "successes" and not the *proportion* of “successes”. So, if in the above example, you were given the following information:
+
+*54.9% of the 2430 MLB games had the home team winning*
+
+you need to convert the percent or proportion of "successes" into a count. So .549*2430 is approximately 1334. In `prop.test()`, `x` = the number of "successes" and `n` = sample size. Again, we specify `correct = FALSE` to not apply Yates' Continuity Correction, which again is beyond the scope of this class.
+
+```{r}
+prop.test(x = 1334, n = 2430, correct = FALSE)
+```
+
+By default, a 95% confidence level is computed, but you can change the level of confidence by typing in a new value. For example, if you would rather have a 90% confidence level, type `conf.level = .90` rather than `conf.level= .95`.
+
+```{r}
+prop.test(x = 1334, n = 2430, correct = FALSE, conf.level = .90)
+```
+
+### Conducting a Test for a Single Proportion
+
+Using the same example as above, suppose we want to test the claim that the proportion of winning for the home team in MLB is 50/50.
+
+$$
+\begin{eqnarray}
+ H_0: & p = 0.5 \\
+H_a: &p \neq 0.5
+\end{eqnarray}
+$$
+This is actually already calculated in the output from the `prop.test()` that is shown above. By default, the population parameter is set to not equal to 0.5 (i.e., *p* ≠ 0.5) for the alternative hypothesis (a two-sided or two-tailed test).
+
+
+```{r}
+prop.test(x = 1334, n = 2430, correct = FALSE)
+```
+The above can be modified if we want to test different null and alternative hypotheses, other than the two-sided. Suppose we want to test if *p* is equal to, or less than, 0.3: 
+
+$$
+\begin{eqnarray}
+ H_0: & p = 0.3 \\
+H_a: & p < 0.3
+\end{eqnarray}
+$$
+we can specify `p = 0.3` (*p* is the hypothesized null value) and `alternative = "less"`.
+
+```{r}
+prop.test(x = 1334, n = 2430, p = 0.3, correct = FALSE, alternative = "less")
+```
+
+If we want to test the “greater than” hypothesis for `p = 0.3`,
+
+$$
+\begin{eqnarray}
+ H_0: &p = 0.3 \\
+H_a: &p > 0.3
+\end{eqnarray}
+$$
+we can specify `alternative = "greater"`.
+
+```{r}
+prop.test(x = 1334, n = 2430, p = 0.3, correct = FALSE, alternative = "greater")
+```
+
+### Conducting a Test (and Computing a Confidence Interval) for a Difference in Proportions
+
+Suppose you have obtained a random sample of flights for two airlines and you would like to compare these two airlines on proportion of late arrivals. A two-sample *z*-test is therefore in order.
+
+$$
+\begin{eqnarray}
+ H_0: &p_A - p_B = 0 & \text{OR} & p_A = p_B \\
+H_a: &p_A - p_B \neq 0 &\text{OR} & p_A \neq p_B
+\end{eqnarray}
+$$
+
+For Airline A, 151 out of 700 flights were late and for Airline B, 87 out of 500 flights were late.
+
+We can still use `prop.test` here.  Now, we simply specify both of the "successes" (i.e. late flights), and both of the sample sizes, making sure that we are consistent in the order that we list these.  Below the first success and the first sample size represents airline A, and the second success and the second sample size represents airline B.
+
+```{r}
+prop.test(x = c(151, 87), n = c(700, 500), correct = FALSE, conf.level = 0.95)
+```
+
+## Regression
+
+### Correlation and Simple Linear Regression
+
+To determine if two quantitative variables are related to one another, we can calculate the correlation between the two variables. We can also create an equation that can be used to predict one of these quantitative variables from another. Here, we will focus on whether high school GPA (`GPA`) can predict students' scores on the SAT (`SAT`).
+
+```{r}
+gpa.sat <- read_csv("GPA-SAT.csv")
+
+gpa.sat
+```
+
+It is important to get into the habit of creating a scatterplot before computing the correlation coefficient and obtaining the regression equation to make sure the relationship between the variables in question is linear. 
+
+We can create this using `xyplot()`.  Since `SAT` is our response variable, and `GPA` or explanatory variable, we put `SAT` on the left-hand side so that it shows up on the *y*-axis of the plot.
+
+```{r}
+xyplot(SAT ~ GPA, data = gpa.sat, main = "Relationship between SAT\nscores and high school GPA")
+```
+
+To obtain the correlation between GPA and SAT score, use the `cor()` function as shown below:
+
+```{r}
+cor(SAT ~ GPA, data = gpa.sat)
+```
+The arguments for the `cor()` function are the two variables you are interested in correlating as shown in the formula.  The number above, `0.5472308`, is the value of *r*, the Pearson Product-Moment Correlation Coefficient.
+
+The `lm()` function will be used to get the regression equation that can be used to predict SAT score from GPA. Just like on the plot above, we put the response variable, `SAT`, on the left side of the `~` in the equation, and we put our explanatory variable, `GPA`, on the right side.  
+
+Fitting a regression returns a lot of results, not all of which R prints.  So, we first assign the output of `lm()` to a new object, `sat_model`, and then we use the `summary()` command to see basic details about the model:
+
+
+```{r}
+sat_model <- lm(SAT ~ GPA, data = gpa.sat)
+
+summary(sat_model)
+```
+
+To obtain the regression equation information, you need to use the `summary()` function on the `lm()` object name, so for the example above, the syntax is `summary(sat_model)`. The predicted equation from the output above is: 
+$$
+\text{Predicted SAT} = 197.36 + 59.84\cdot\text{GPA}
+$$
+You can find the regression coefficients under the `Coefficients` section of the output and then under the column labeled `Estimate`. The estimated intercept value is the first row and the estimated slope value is in the second row.
+
+You can also add the regression line to the scatterplot by adding the argument `type = c("p", "r")` (to plot both the **p**oints and the **r**egression line) to `xyplot()`:
+
+```{r}
+xyplot(SAT ~ GPA, type = c("p", "r"), data = gpa.sat)
+```
+
+### Creating Residual Plots
+When you create a regression model, R will save the residuals and fitted values for you. The `fortify()` function (which the `mosaic` package loads for you) creates a data frame for you that makes these values easy to plot.
+
+```{r}
+gpa.sat_fortified <- fortify(sat_model)
+
+gpa.sat_fortified
+```
+
+The columns `.fitted` are the fitted values and `.resid` are the residuals.
+
+We can plot these values just like any other value in R.  To make a histogram of the residuals, simply type the following command, just like you learned in the "Basic R Analysis Guide".
+
+```{r}
+histogram(~ .resid, data = gpa.sat_fortified, type = "count", main = "Residuals of SAT by GPA model", xlab = "Residuals")
+```
+
+To make a scatterplot of the residuals vs. the fitted values, type the following command:
+
+```{r}
+xyplot(.resid ~ .fitted, data = gpa.sat_fortified)
+```
+
+Alternatively, R outputs this same residual plot as the first of the 4 plots produced by the `plot()` for the model object, here `sat_model`, along with some extra annotations and information:
+
+```{r}
+plot(sat_model)
+```
+
+R identifies the numbers of the most extreme observations in the first of these four plots so that you can go back and examine your dataset. The other 3 plots shown are also useful, but beyond the scope of this course. You can learn more about regression analysis in EPSY 5262!
