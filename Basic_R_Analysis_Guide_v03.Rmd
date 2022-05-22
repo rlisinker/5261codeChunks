@@ -14,23 +14,23 @@ We highly recommend actually working through the **Rmd** version of this documen
 Before running the code in this document, please:
 
   1. Read through "Getting Started with R and R Studio".  This will make using this code a LOT easier.
-  2. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`.
-  3. Download **statescountries.csv** and **ExampleData.csv** and put them in the *same directory* on your computer as this file.
+  2. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`. (Instructions are in the "Getting Started with R and R Studio" document.)
+  3. Download **statescountries.csv** and **ExampleData.csv** from the Canvas site (Files page) and put them in the same folder on your computer as this file, this puts all files (the code and the data) in the same *directory*.
   
 ## Loading packages
 
-Every time you open R, you need to load the add-on packages that you'll be using.  We'll always be using `mosaic` and `readr` in this class.  (You should have already installed these packages using the instructions in the "Getting Started" guide.)
+Every time you open R, you need to *load* the add-on packages that you'll be using.  We'll always be using `mosaic` and `readr` in this class.  (You should have already installed these packages using the instructions in the "Getting Started" guide.)
 
-You load a package by using the `library()` function (you can also use `require()`, which is used in the **Lock5 with R** guide. You can copy and paste this chunk into the beginning of all your notebooks to load these packages:
+You *load* a package by using the `library()` function (you can also use `require()`, which is used in the **Lock5 with R** guide. You can copy and paste this chunk into the beginning of all your notebooks to load these packages:
 
-```{r, message = F}
+```{r, message = F, warning = F}
 
 library(mosaic) # easier analysis functions
 library(readr) # easier data import/export
 
 ```
 
-Remember that you run chunks using the "Run" button, or **Ctrl+Shift+Enter**.  If the output is long (which the above is!) you can click the "x" on the upper right of the results to not show the output anymore.  You can also run code one line at a time with **Ctrl+Enter**.
+Remember that you run all chunks using the "Run" button at the top, or **Ctrl+Shift+Enter**.  If the output is long (which the above is!) you can click the "x" on the upper right of the results to not show the output anymore. You can run the code one chunk at a time using the little green play symbol on the top right of the individual code chunk. You can also run code one line at a time with **Ctrl+Enter**, to do this, your cursor needs to be at the end of the line that you'd like to run or you need to have the line highlighted.
 
 The `#` character is for creating *comments* to make your code easier to understand.  Everything after the `#` is ignored by R, so you can use that for making notes or describing what you're doing.
 
@@ -58,6 +58,11 @@ Of course, it might help here to give you a brief overview of the software befor
 
 In R, we create objects in R to store information for later use. The object created in the above example is called `states`. We use the assignment operator, `<-`, as a way of assigning information into the object.  Think of the assignment operator `<-` as pointing to the name of the object that we wish to store information in. (Alternatively, instead of `<-` you can also use the equal sign, `=`.) A good programmer will name the objects in a meaningful way in order for easy recall of what is stored in that object. 
 
+The alternative assignment using the `=` would look like:
+```{r}
+states_duplicate = c(15,10,28,27,27,17,29,23,21,36,16,35,32,27,34)
+```
+
 The `c()` function is a way of putting all of the information together in one `vector` (a sequence of multiple values). It essentially concatenates the arguments of the function (each number in this case is an argument of the function) together to form a vector. Arguments are separated by commas in the parentheses. Lastly, R is case sensitive, which means that the symbols `A` and `a` would not refer to the same thing.
  
 If we want to see what is assigned under the object named `states`, we can just type in the object name `states` into a code chunk, click Run, and you will see the data contained in that object in the console (which is shown below after the `[1]`):
@@ -80,15 +85,17 @@ example <- read_csv("Example-Data.csv")
 
 ```
 
-The first command takes the file **StatesCountries.csv** and assigns it to a new R object called `travel`.  The second and command operates similarly.  The function `read_csv()` also gives some output information about how it read in each of the values. You'll notice both of these objects now show up in the **Environment** pane on the upper-right panel of RStudio, and you can double-click on each dataset to view the values within the data. 
+The first command takes the file **StatesCountries.csv** and assigns it to a new R object called `travels`.  The second and command operates similarly.  The function `read_csv()` also gives some output information about how it read in each of the values. 
 
-You can also view the data from within the notebook, just by typing its name.
+You'll notice both of these objects now show up in the **Environment** pane on the upper-right panel of RStudio, and you can click on each dataset to view the values within the data and you can click on the blue play button to the left of the names to view the variable names (listed after a $). 
+
+You can also view the data from within the notebook, just by typing its name in a code chunk.
 
 ```{r}
 travels
 ```
 
-You can see here that `travel` consists of two vectors: `states` and `countries`. 
+You can see here that `travels` consists of two vectors: `states` and `countries`. These are the variable names you will see if you click on the blue play button next to `travels` in the **Environment** pane.
 
 **Tips and Tricks #2:** When you name variables, try to make them short (usually one word), simple, interpretable, and without spaces. In the above example, here are two different versions of the variable names: 
 
@@ -111,6 +118,13 @@ For this class, you can use R code that obeys the following template:
   - `*goal*`: what are you trying to do?  For instance, you may want to calculate a `mean`.  
   - `*y*` and `*x*` what is your *outcome* variable and your *predictor*?  For instance, if you're trying to predict student test scores with how many hours the students studied, test scores would be your `*y*`/outcome variable and hours studied would be your `*x*`/predictor variable.  If you only have one variable, than you would have no `*y*` variable and instead would just type `~ *x*` or just `*x*`.
   - `*dataset*`: what R object contains the data you're trying to analyze?
+  
+**Note:**   
+At the start of your statistical journey, you may only want to focus on one variable at a time, you can still use this template. For example, you might be asked to find the average number of countries:
+```{r}
+mean(~countries, data = travels)
+```
+
 
 This is called *formula syntax*.  Not all R functions work this way, but we've tried to focus on R functions that are consistent with this template to make R easier to learn.  See p. 16 of **Lock5 with R** for more information about this template for writing R code.
 
@@ -134,13 +148,17 @@ histogram(~ states, data = travels)
 A histogram will be displayed once you execute the above command. We can add on some options to help us view this data more clearly, like set the bin width (`width`), the title (`main`), and the x-axis title (`xlab`):
 
 ```{r}
-histogram(~ states, data = travels, width = 1, main = "Number of states travelled", xlab = "States Travelled")
+histogram(~ states, data = travels, 
+          width = 1, # the width of each bar is now set to 1 as opposed to the wider bars in the last plot
+          main = "Number of states travelled", # the main title of the plot
+          xlab = "States Travelled") # title (or label) for the x-axis
 ```
 
 What if we wanted to compare histograms of two variables?  `histogram()` makes this easy -- we have two *x* variables so we just put a plus sign between them since we want to see what happens for both variables.  `outer = TRUE` tells R that we want to plot two different panels.
 
 ```{r}
-histogram(~ states + countries, data = travels, width = 1, main = "Number of states or countries travelled", 
+histogram(~ states + countries, data = travels, width = 1, 
+          main = "Number of states or countries travelled", 
           xlab = "# States or Countries", outer = TRUE)
 ```
 
@@ -245,6 +263,8 @@ Any of the above functions can be calculated *by group* as well, where the group
 
 ```{r}
 mean(~ height | gender, data = example, na.rm = TRUE)
+# read this as "find the mean of the height variable, grouped by gender (from the example dataset and remove NAs)"
+# note that the output shows the groups as 1 and 2, this is because these are the values in our gender column in the original dataset
 ```
 
 This will work with any of the other commands, such as `sd()`:
@@ -257,22 +277,26 @@ Instead of listing each statistic separately, we can create separate summaries o
 
 ```{r}
 favstats(~ height | gender, data = example, na.rm = TRUE)
+# each row in the output corresponds to one group 
 ```
 We can also create plots by a grouping variable in the same way.  Here is a histogram of the heights by group:
 
 ```{r}
 histogram(~ height | gender, data = example, main = "Heights of students", xlab = "height in inches")
+# because gender is specified as a 1 or 2 in this dataset, the plot on the left is 1 and the plot on the right is 2, it will not specify this because R reads this variable as a number and not as a group or categorical variable
 ```
 
-The histogram function works better when the groups are stored as text rather than as numbers, like they are here.  We can make the plot a bit more clear by using the `factor()` command, which converts the `gender` variable as a "factor" which is a way R deals with text and grouping variables. We can also recode the names for each group, changing a "1" to indicate a "Male and a "2" to indicate a "Female". We can use the `transform` command to add a new variable called `gender_factor` and create a new version of our dataset, which we'll call `example_2`:
+The histogram function works better when the groups are stored as text rather than as numbers, like they are here.  We can make the plot a bit more clear by using the `factor()` command, which converts the `gender` variable as a "factor" which is a way R deals with text and grouping variables. We can also recode the names for each group, changing a "1" to indicate a "Male" and a "2" to indicate a "Female". We can use the `transform` command to add a new variable called `gender_factor` and create a new version of our dataset, which we'll call `example_2`:
 
 ```{r}
 example_2 <- transform(example, gender_factor = factor(gender, labels = c("Male", "Female")))
+# This line can be read as "Create a new dataset named example_2 that transforms the existing example dataset and adds a new variable called gender_factor that takes the values from the original gender variable and sets 1 equal to Male and sets 2 equal to Female"
 ```
 
 We can also display separate sets of summary statistics for the Males and Females, now with meaningful labels for each row.
 ```{r}
 favstats( ~ height | gender_factor, data = example_2, na.rm = TRUE)
+# this will look the same as what we did before but with better labels for the grouping variable
 ```
 
 We also can compare the distributions more easily if we stack the plots vertically using the `layout` command introduced earlier:
@@ -300,7 +324,9 @@ You can find out more about the data (or about any R data or function) by typing
 ?Whickham
 ```
 
-We'll compare `outcome` and `smoker`.  We can create a two-way table of counts using the `tally()` function, and save that table as a new object.  
+We'll compare `outcome` and `smoker`.  We can create a two-way table of counts using the `tally()` function, and save that table as a new object. 
+
+Remember that we save this table as a new object by assigning a name for the table and using `<-` or `=`
 
 ```{r}
 two_way <- tally(~ outcome + smoker, data = Whickham)
@@ -308,6 +334,7 @@ two_way
 ```
 
 If we want totals, the argument `margins = TRUE` adds on the `Total` rows.
+The code below creates a second table (new name) with the row and column totals in the margins.
 
 ```{r}
 two_way_totals <- tally(~ outcome + smoker, data = Whickham, margins = TRUE)
@@ -315,6 +342,8 @@ two_way_totals
 ```
 
 It can be useful to see the percentages across smokers -- this will tell us what percentage of non-smokers are dead or alive, and what percentage of smokers are dead or alive.  Above, we used the formula `~ smoker + outcome` because we weren't treating either `smoker` or `outcome` as the outcome variable.  Now, we use the formula `outcome ~ smoker` to clarify that `outcome` is our outcome variable, and add `format = "percent"` to show the percentage.
+
+Because we have specified which variable is which, these percentages will tell us the percent of each outcome (alive or dead) grouped by our predictor variable (whether the person smoked or not). What percent of smokers are alive? In the table above, 443 smokers were listed with the `alive` outcome out of 582 total smokers. 443/582 is represented below as 76.116% in the same top right spot. 
 
 ```{r}
 smoker_percent <- tally(outcome ~ smoker, data = Whickham, format = "percent")
