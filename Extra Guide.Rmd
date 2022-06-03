@@ -1,0 +1,192 @@
+---
+title: "Extra_R_Guide"
+author: "Regina"
+date: "5/30/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Entering data into R
+
+To enter a new data set (something you will need to do in this course), there are two things you can do (both of which will be illustrated below):
+
+Option 1: If you only have one variable, you can easily type data directly into R. 
+
+Option 2: If you have one or more variables, or a very large data set, you may find it easier to type the data into an Excel spreadsheet, save that spreadsheet as a “.csv” file, and then import that spreadsheet from your computer into R.
+
+We encourage R users to get used to importing a data set directly into R from Excel, since this is usually the easiest way to go.
+
+### Directly typing data into R
+
+Suppose we asked all students in a class (where there are N = 15 students): “How many states have you visited in your lifetime?” The following data was obtained from the class:
+
+15   10   28   27   27   17   29   23   21   36   16   35   32   27   34
+
+To enter this data into R, you would run the code: 
+```{r}
+states <- c(15,10,28,27,27,17,29,23,21,36,16,35,32,27,34)
+```
+Of course, it might help here to give you a brief overview of the software before you get too far into R. 
+
+In R, we create objects in R to store information for later use. The object created in the above example is called `states`. We use the assignment operator, `<-`, as a way of assigning information into the object.  Think of the assignment operator `<-` as pointing to the name of the object that we wish to store information in. (Alternatively, instead of `<-` you can also use the equal sign, `=`.) A good programmer will name the objects in a meaningful way in order for easy recall of what is stored in that object. 
+
+The alternative assignment using the `=` would look like:
+```{r}
+states_duplicate = c(15,10,28,27,27,17,29,23,21,36,16,35,32,27,34)
+```
+
+The `c()` function is a way of putting all of the information together in one `vector` (a sequence of multiple values). It essentially concatenates the arguments of the function (each number in this case is an argument of the function) together to form a vector. Arguments are separated by commas in the parentheses. Lastly, R is case sensitive, which means that the symbols `A` and `a` would not refer to the same thing.
+ 
+If we want to see what is assigned under the object named `states`, we can just type in the object name `states` into a code chunk, click Run, and you will see the data contained in that object in the console (which is shown below after the `[1]`):
+
+```{r}
+states
+```
+
+## Descriptive Statistics
+
+### Summarizing data with numbers
+
+In addition to graphing data, we will often want to summarize our data numerically by computing various measures of center (like the mean and median) and variability (like the standard deviation, range, and interquartile range). This can be done by typing each summary function out on different lines of code.   Below are some examples of what this would look like in R.
+
+```{r}
+## Mean of states variable
+mean(~ states, data = travels)
+```
+
+```{r}
+## Median of states variable
+median(~ states, data = travels)
+```
+
+```{r}
+## Standard deviation of states variable
+sd(~ states, data = travels)
+```
+
+```{r}
+## Variance of states variable
+var(~ states, data = travels)
+
+```
+
+```{r}
+## Range of states variable
+range(~ states, data = travels)
+```
+
+```{r}
+## IQR of states variable
+IQR(~ states, data = travels)
+```
+
+```{r}
+## Minimum of states variable
+min(~ states, data = travels)
+```
+
+```{r}
+## Maximum of states variable
+max(~ states, data = travels)
+```
+
+**Important note if your variable has missing data**: If your variable contains some blanks (because data is missing), when you try to find summary statistics, R will display `NA` rather than giving you the summary statistic. For instance, in the `example` dataset, there are missing values of height:
+
+```{r}
+mean(~ height, data = example)
+```
+
+For this case, you will need to use `na.rm = TRUE`
+For example: 
+
+```{r}
+mean(~ height, data = example, na.rm = TRUE)
+```
+
+Now, we can see the average height, excluding any missing values.  We do not recommend *always* specifying `na.rm = TRUE`, because it is important for the analyst to *know* that there are missing values.  It's better to only use that option when we absolutely need it.
+
+
+There is another summary function that gives you the 5-number summary (minimum, 1st quartile, median, 3rd quartile, maximum).   That command is shown below.
+
+```{r}
+## Five-number summary of state variable
+fivenum(~ states, data = travels)
+
+```
+
+Finally, you can see a summary of several important statistics using the `favstats()` command: five-number summary, mean, standard deviation, number, and number of missing values.
+
+```{r}
+favstats(~ states, data = travels)
+```
+
+## Describing two categorical variables.
+
+These examples use the `Whickam` dataset from the `mosaicData` package (which was installed when you installed the `mosaic` package). First, we'll load that package and take a quick look at the data:
+
+```{r}
+library(mosaicData)
+head(Whickham)
+```
+
+The `head()` function just shows the first six rows of the data, so we can get a sense of what it looks like.  You can also double-click on the dataset in RStudio to view the full data.
+
+You can find out more about the data (or about any R data or function) by typing the `?` before the dataset.  The help page will show up in the lower right panel. (Warning: for R functions, the help pages can often be too technical for beginners.)
+
+```{r eval=FALSE}
+?Whickham
+```
+
+We'll compare `outcome` and `smoker`.  We can create a two-way table of counts using the `tally()` function, and save that table as a new object. 
+
+Remember that we save this table as a new object by assigning a name for the table and using `<-` or `=`
+
+```{r}
+two_way <- tally(~ outcome + smoker, data = Whickham)
+two_way
+```
+
+If we want totals, the argument `margins = TRUE` adds on the `Total` rows.
+The code below creates a second table (new name) with the row and column totals in the margins.
+
+```{r}
+two_way_totals <- tally(~ outcome + smoker, data = Whickham, margins = TRUE)
+two_way_totals
+```
+
+It can be useful to see the percentages across smokers -- this will tell us what percentage of non-smokers are dead or alive, and what percentage of smokers are dead or alive.  Above, we used the formula `~ smoker + outcome` because we weren't treating either `smoker` or `outcome` as the outcome variable.  Now, we use the formula `outcome ~ smoker` to clarify that `outcome` is our outcome variable, and add `format = "percent"` to show the percentage.
+
+Because we have specified which variable is which, these percentages will tell us the percent of each outcome (alive or dead) grouped by our predictor variable (whether the person smoked or not). What percent of smokers are alive? In the table above, 443 smokers were listed with the `alive` outcome out of 582 total smokers. 443/582 is represented below as 76.116% in the same top right spot. 
+
+```{r}
+smoker_percent <- tally(outcome ~ smoker, data = Whickham, format = "percent")
+smoker_percent
+```
+
+Conversely, if we want to see the percentages across outcomes -- what percentage of dead people are smokers or non-smokers, and what percentage of alive people are smokers or non-smokers -- we use the formula `smoker ~ outcome`:
+
+```{r}
+outcome_percent <- tally(smoker ~ outcome, data = Whickham, format = "percent")
+outcome_percent
+```
+
+Note that the columns in either case add up to 100%.
+
+## Creating side-by-side and segmented bar charts
+
+To create bar graphs, we can use `bargraph`.  Here, we specify the grouping variable by the `groups = ` command. The default result is a side-by-side bar chart:
+
+```{r}
+bargraph(~ smoker, groups = outcome, data = Whickham)
+```
+
+
+If we want to make a segmented bar chart, where the groups are stacked on top of each other, simply specify that `stack = TRUE`:
+
+
+```{r}
+bargraph(~ smoker, groups = outcome, data = Whickham, stack = TRUE)
+```
