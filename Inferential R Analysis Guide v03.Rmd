@@ -16,49 +16,69 @@ This document assumes that you have already read through "Getting Started with R
 
 Before running the code in this document, please:
 
-  1. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`.
-  2. Download **GenderPolitics.csv**, **GPA-SAT.csv**, **StudyHours.csv**, **TestScores2.csv**, and  **VocabKnowledge.csv** and put them in the *same directory* on your computer as this file.
+  1. Make sure you have installed the packages `rmarkdown`, `mosaic`, and `readr`. These should not be new packagaes to you :)
+  2. Download **GenderPolitics.csv**, **GPA-SAT.csv**, **StudyHours.csv**, **TestScores2.csv**, and  **VocabKnowledge.csv** and put them in the same folder on your computer as this file so R can reference the same *directory*.
   
 ## Loading packages
 
 Again, we load the same core packages that we used in the Basic R Analysis Guide.
 
-```{r, message = F}
+```{r, message = F, warning = F}
 
 library(mosaic) # easier analysis functions
 library(readr) # easier data import/export
 library(tidyr) # Rearranging data
 ```
 
+##LaTeX
+Throughout this document, you'll see some inline symbols or equations/hypotheses written out in LaTeX. When this .rmd document is *knit*, it will show these symbols the way we intend.   
+
+LaTeX allows us to write $\mu$ instead of saying "the greek letter mu". To see what an inline symbol looks like (written within the dollar signs), you can click on or hover over the symbol.   
+
+We can also use two dollar signs for larger chunks of symbols/equations:
+$$
+\begin{eqnarray}
+ H_0: & \mu = 0 \\
+H_a: & \mu \neq 0
+\end{eqnarray}
+$$
+Again, you can click on what is written if the *rendered* equation does not show up below what is within the two dollar signs. 
+
 ## Quantitative Variables
 
 ### Creating a confidence interval for a single quantitative variable.
 Suppose you collected data on the number of hours students indicate they have studied for an exam, and stored it in the CSV file **StudyHours.csv**.
 
-The following example will import thedata from a .csv file into a data frame object called `study`. Then, a 95% confidence interval will be computed for the `Hours` variable.
+The following code chunk will import the data from a .csv file into a data frame object called `study`: 
 
 ```{r}
 study <- read_csv("StudyHours.csv")
-
-study
-
 ```
+
+Remember that it is a good habit to see what is stored in the variables or objects you create:
+```{r}
+study
+```
+
+Suppose you are asked to compute a 90% confidence interval for the `Hours` variable.  
 Now, we can use the function `t_test()`, which allows us to calculate the *t*-test and the confidence interval.  You can use the function like this:
 
-``t_test( ~ *variable*, mu = *null value*, data = *name of data*, conf.level = *level of confidence as decimal*)``
+`t_test( ~ *variable*, mu = *null value*, data = *name of data*, conf.level = *level of confidence as decimal*)`
 
 So if we wanted to show a 90% confidence interval, where the null hypothesis is that $\mu = 0$, we would do:
 ```{r}
 t_test(~ Hours, mu = 0, data = study, conf.level = 0.90)
 ```
 
-The `t_test()` function provides a lot of useful information regarding the `Hours` variable. The function gives us the *t*-test information (*t*-statistic, df, *p*-value, hypothesized value), confidence interval for the specified confidence level, and sample mean statistic.
+The `t_test()` function provides a lot of useful information regarding the `Hours` variable. The function gives us the *t*-test information (*t*-statistic, degrees of freedom (df), *p*-value, alternative hypothesis), confidence interval for the specified confidence level, and sample mean statistic.
 
-Also, note that if the *p*-value is very small, R uses scientific notation. In the above example, R gives the *p*-value as `9.363e-07`, which means $9.363 \times 10^{-7}$, or .0000009363.  By default, R assumes `mu` is 0 and `conf.level` is 0.95, but we recommend always specifying what your null hypothesis and confidence level are for this class.
+Also, note that if the *p*-value is very small, R uses scientific notation. In the above example, R gives the *p*-value as `9.363e-07`, which means $9.363 \times 10^{-7}$, or 0.0000009363.  By default, R assumes `mu` is 0 and `conf.level` is 0.95, but we recommend always specifying what your null hypothesis and confidence level are for this class.
+
+As our final answer here, when asked for a 90% confidence interval, we would report it as **(10.884, 14.916)** based on the output above. 
 
 ### Conducting a one-sample *t*-test
 
-Suppose there is a claim that students tend to study 12 hours for particular exam in question. You want to test this claim with your sample of data. Since you have just a single sample and you are using this sample to test a claim about a population parameter (the population mean), you will conduct a one-sample t-test, with the following hypotheses:
+Suppose there is a claim that students tend to study 12 hours for the particular exam in question. You want to test this claim with your sample of data. Since you have just a single sample and you are using this sample to test a claim about a population parameter (the population mean), you will conduct a one-sample t-test, with the following hypotheses:
 
 $$
 \begin{eqnarray}
@@ -72,6 +92,9 @@ You will once again use the `t_test()` function, this time changing `mu` to 12 a
 ```{r}
 t_test(~ Hours, mu = 12, data = study, conf.level = 0.95)
 ```
+This gives us all the information we need to make a conclusion statement regarding our research question.   
+
+
 The above can be modified if we want to test different alternative hypotheses, other than the two-sided. If we want to test the “less than” hypothesis, 
 
 $$
@@ -94,11 +117,13 @@ $$
 H_a: & \mu > 12
 \end{eqnarray}
 $$
+
 We can specify the argument `alternative` to be `"greater"`:
 
 ```{r}
 t_test(~ Hours, mu = 12, data = study, conf.level = 0.95, alternative = "greater")
 ```
+Note that the p-values for the "less than" and the "greater than" alternatives are complements (they add up to 1).
 
 ### Conducting a Paired t-Test
 
@@ -110,23 +135,20 @@ $$
 H_a: & \mu_d \neq 0
 \end{eqnarray}
 $$
-Here we read in the data to an R data frame called `vocab`.
+Here we read in the data to an R data frame called `vocab` and check what is in the `vocab` object.
 ```{r}
 vocab <- read_csv("VocabKnowledge.csv")
 vocab
 ```
-Note that the pre scores and the post scores are in separate columns here. `t_test` expects just one column to contain all the quantitative values, so we want to rearrange this data.  We can use the function `gather`, from the `tidyr` package to "gather" all the quantitative values into one column.  This function takes the *data* of `vocab`, creates a "key" column which we'll call `"timing"` to denote whether this is the pre or post score, and then will gather all the scores as "value"s in the column we'll call `score`.  The last arguments are simply the names of the columns we want to gather.
+
+Note that we have two rows for each student -- first we have the pre-scores for each student, then we have the post-scores. 
+
+Now, just like we did with plotting in the "Basic R Analysis Guide", we can use formula syntax in `t_test()` to specify our variables. `score` is our response variable, and `timing` is our explanatory variable, so we use the formula `score ~ timing`.  We also specify `paired = TRUE` to tell R that this is paired data (i.e. with two observations per person) and thus that it should subtract each pre score from its corresponding post score (i.e., subtract student 1's pre score from their post score): 
 
 ```{r}
-vocab_gather <- gather(data = vocab, key = timing, value = score, pre, post)
-vocab_gather
+t_test(score ~ timing, data = vocab, paired = TRUE, mu = 0, conf.level = 0.95)
 ```
-
-Note that we now have two rows for each student -- first we have the pre-scores for each student, then we have the post-scores.  Now, just like we did with plotting in the "Basic R Analysis Guide", we can use formulas in `t_test()` to specify our variables.  `score` is our response variable, and `timing` is our explanatory variable, so we use the formula `score ~ timing`.  We also specify `paired = TRUE` to tell R that this is paired data (i.e. with two observations per person) and thus that it should subtract each post score from its corresponding pre score (i.e., subtract student 1's pre score from their post score): 
-
-```{r}
-t_test(score ~ timing, data = vocab_gather, paired = TRUE, mu = 0, conf.level = 0.95)
-```
+R defaults to subtracting the first group from the second group (in this case post-pre).
 
 As seen previously with the `t_test()` function, the arguments of the function may be modified to perform the appropriate analysis (e.g., confidence level, direction of the alternative). See the example below that changes the direction of the alternative to greater than 0 and changes the confidence level to 99%.
 
@@ -138,22 +160,36 @@ H_a: &\mu_d > 0
 $$
 
 ```{r}
-t_test(score ~ timing, data = vocab_gather, paired = TRUE, mu = 0, conf.level = 0.99, alternative = "greater")
+t_test(score ~ timing, data = vocab, paired = TRUE, mu = 0, conf.level = 0.99, alternative = "greater")
 ```
 
-Note that if you have paired data, you can plot the differences directly in a histogram or dotplot by just typing the formula for subtracting the two directly in the formula for the plot, then graph those differences in order to determine if you are violating the necessary data condition of normality in the population.  For instance, here's a dot plot of the differences (see "Basic R Analysis Guide" for more help on plotting):
+
+
+In order to plot the differences, you need two columns specifying pre and post scores to be able to subtract one from the other. To do this, first we need to *spread* the data into two columns, we'll create a new data frame named `vocab_spread` with the `spread` function. The first argument is the input data, the second is our key which tells R which column to use as the key to spread out our data, the last argument is our value, in this case score.
+```{r}
+vocab_spread <- spread(vocab, key = timing, value = score)
+vocab_spread
+```
+Note that if you have paired data separated like this, you can plot the differences directly in a histogram or dotplot by just typing the formula for subtracting the two directly in the formula for the plot, then graph those differences in order to determine if you are violating the necessary data condition of normality in the population.  For instance, here's a dot plot of the differences (see "Basic R Analysis Guide" for more help on plotting):
 
 ```{r}
-dotPlot(~ post - pre, data = vocab, main = "Difference in Vocabulary Test", xlab = "Post - Pre")
+dotPlot(~ post - pre, # subtract pre scores from post scores
+        data = vocab_spread, # using our initial data set that had the scores in two separate columns
+        main = "Difference in Vocabulary Test", # main title (above plot)
+        xlab = "Post - Pre") # label for x-axis
 ```
 
-You may also want to determine what the differences are with our data object `vocab`. You will need to specify the columns from the vocab object that you would like to perform arithmetic on (in order to compute the differences for each pair of observations). You can do this by creating a new data frame, which we'll call `vocab_diff`, using the `mutate` function to create a new variable.  The first argument is just the input data, and then we can just type a formula to calculate the new column, which we'll call `diff`:
-
+From there, we can compute the differences for each pair of observations by creating a new data frame, which we'll call `vocab_diff`, using the `mutate` function to create a new variable.  The first argument is just the input data, and then we can just type a formula to calculate the new column, which we'll call `diff`:
 ```{r}
-vocab_diff <- mutate(vocab, diff = post - pre)
+vocab_diff <- mutate(vocab_spread, diff = post - pre)
+#creates a new object named vocab_diff that is a copy of vocab_spread with the addition of a variable called diff which calculates post-pre for each row
 vocab_diff
 ```
-Plotting the `diff` column would look the same as the plot above where we calculated the difference right in the formula for the plot.
+Plotting the `diff` column would look the same as the plot above where we calculated the difference right in the formula for the plot:
+```{r}
+dotPlot(~diff, data = vocab_diff, main = "Difference in Vocabulary Test", xlab = "Post - Pre")
+```
+
 
 ## Conducting a two-sample *t*-test
 
@@ -205,41 +241,11 @@ To calculate the chi-square test and associated statistics, we use the function 
 
 ```{r}
 xchisq.test(~ gender + politics, data = gp, correct = FALSE)
+# don't mind the warning :)
 ```
 
-The output includes the observed counts (which match the table shown above), then the expected cell counts in parentheses below it.  In this course, we will not be directly using the other two values given for each cell.
+The output includes a key which tells us that each cell includes the observed counts (which match the table shown above), the expected cell counts in parentheses below it, the cell's contribution to the overall chi-squared value, and the Pearson residual value for each cell.  In this course, we will not be directly using the latter two values given for each cell.
 
-What if, instead of having that data file, you were given a contingency table like the one below? Here, again, we have the same sample of males and females, and each male and female is categorized as being either Republican (r) or Democrat (d).  Is there a significant relationship between gender and political party affiliation?
-
-|            |	Males |	Females |	Totals|
-|------------|---------|-------|---|
-| Democrat|	3 |	4 |	7|
-|Republican|	4|	4|	8|
-|Totals|	7|	8|	15|
-
-We can enter the above information rather easily right into R in order to perform a chi-square analysis.  
-We begin by defining our variables (gender and party).  Note we want to enter the information in a particular way here to keep track: we'll first enter the two values for Democrats and then the two values for Republicans, reading left to right across rows.  `ncol` tells R how many columns there are in the table, `nrow` tells R how many rows, and `byrow = TRUE` tells R that we are entering the data going across each row from top to bottom (which many students find more intuitive).
-
-```{r}
-gp_data <- matrix(c(3, 4, 4, 4), ncol = 2, nrow = 2, byrow = TRUE)
-
-gp_data
-```
-
-Now, we want to add a little bit of information to make this more clear.  The columns of `gp_data` are males and females, while the rows are Democrats and Republicans; we use the R functions `rownames` and `colnames` to assign these values:
-
-```{r}
-rownames(gp_data) <- c("D", "R")
-colnames(gp_data) <- c("M", "F")
-
-gp_data
-```
-We can also use the `xchisq.test()` function on this table that we just created, which you'll see generates the same output:
-
-```{r}
-xchisq.test(gp_data, correct = FALSE)
-```
-In terms of the warning message, you can see that we get a message that the chi-square approximation may be incorrect.  This is very likely because of the small expected values, which we can see in the parenthesized text above.
 
 ## Inference for proportions
 

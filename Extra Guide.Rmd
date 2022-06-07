@@ -5,8 +5,11 @@ date: "5/30/2022"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(mosaic) # easier analysis functions
+library(readr) # easier data import/export
+library(tidyr) # Rearranging data
 ```
 
 ## Entering data into R
@@ -49,6 +52,12 @@ states
 ## Descriptive Statistics
 
 ### Summarizing data with numbers
+
+Let's revisit our previous data sets:
+```{r}
+travels <- read_csv("StatesCountries.csv")
+example <- read_csv("Example-Data.csv")
+```
 
 In addition to graphing data, we will often want to summarize our data numerically by computing various measures of center (like the mean and median) and variability (like the standard deviation, range, and interquartile range). This can be done by typing each summary function out on different lines of code.   Below are some examples of what this would look like in R.
 
@@ -190,3 +199,54 @@ If we want to make a segmented bar chart, where the groups are stacked on top of
 ```{r}
 bargraph(~ smoker, groups = outcome, data = Whickham, stack = TRUE)
 ```
+
+## Paired Data
+
+Note that in some data sets, our paired data might be in two separate columns. Think back to our vocab test data, what if instead of having the data in one column, pre scores and the post scores are in separate columns? `t_test` expects just one column to contain all the quantitative values, so we want to rearrange this data. 
+Use the **VocabExtra.csv** file to see `gather` in action. We can use the function `gather`, from the `tidyr` package to "gather" all the quantitative values into one column.  
+The function looks like this: `newName <- gather(data = originalData, key = pairingVar, value = responseVar, pairGroup1, pairGroup2)`. We are creating a new data frame named `newName` which uses our `originalData` and creates a variable named `pairingVar` which takes on values of `pairGroup1` and `pairGroup2` (which are the column names in `originalData`) and a variable for the `responseVar`. Not that this is general code which is meant to be edited depending on context.
+
+In this context, this function takes the *data* of `vocabExtra`, creates a "key" column which we'll call `timing` to denote whether this is the pre or post score, and then will gather all the scores as "value"s in the column we'll call `score`.  The last arguments are simply the names of the columns we want to gather (`pre` and `post`).
+
+```{r}
+vocabExtra <- read_csv("VocabExtra.csv") #read in data
+vocabExtra #check out what it looks like
+
+newVocab <- gather(data = vocabExtra, key = timing, value = score, pre, post)
+newVocab #take a look at our new object 
+```
+
+You will not always have to use `gather()` as some data sets are already organized in this manner, in which case you can skip this step and move on. 
+
+## Chi Squared
+What if, instead of having a neat data file, you were given a contingency table like the one below? Here, again, we have the same sample of males and females, and each male and female is categorized as being either Republican (r) or Democrat (d).  Is there a significant relationship between gender and political party affiliation?
+
+|            |	Males |	Females |	Totals|
+|------------|---------|-------|---|
+| Democrat|	3 |	4 |	7|
+|Republican|	4|	4|	8|
+|Totals|	7|	8|	15|
+
+We can enter the above information rather easily right into R in order to perform a chi-square analysis.  
+We begin by defining our variables (gender and party).  Note we want to enter the information in a particular way here to keep track: we'll first enter the two values for Democrats and then the two values for Republicans, reading left to right across rows.  `ncol` tells R how many columns there are in the table, `nrow` tells R how many rows, and `byrow = TRUE` tells R that we are entering the data going across each row from top to bottom (which many students find more intuitive).
+
+```{r}
+gp_data <- matrix(c(3, 4, 4, 4), ncol = 2, nrow = 2, byrow = TRUE)
+
+gp_data
+```
+
+Now, we want to add a little bit of information to make this more clear.  The columns of `gp_data` are males and females, while the rows are Democrats and Republicans; we use the R functions `rownames` and `colnames` to assign these values:
+
+```{r}
+rownames(gp_data) <- c("D", "R")
+colnames(gp_data) <- c("M", "F")
+
+gp_data
+```
+We can also use the `xchisq.test()` function on this table that we just created, which you'll see generates the same output:
+
+```{r}
+xchisq.test(gp_data, correct = FALSE)
+```
+In terms of the warning message, you can see that we get a message that the chi-square approximation may be incorrect.  This is very likely because of the small expected values, which we can see in the parenthesized text above.
